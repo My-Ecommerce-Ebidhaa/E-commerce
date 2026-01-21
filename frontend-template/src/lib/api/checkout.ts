@@ -72,18 +72,19 @@ export async function calculateShipping(
   country: string,
   sessionId?: string
 ): Promise<ShippingRate[]> {
+  apiClient.setTenant(tenantSlug);
+
   const headers: Record<string, string> = {};
   if (sessionId) {
     headers['x-session-id'] = sessionId;
   }
 
-  const response = await apiClient.post<ApiResponse<ShippingRate[]>>(
+  const response = await apiClient.post<ShippingRate[]>(
     '/checkout/shipping',
     { postalCode, country },
-    tenantSlug,
     { headers }
   );
-  return response.data.data;
+  return response.data!;
 }
 
 export async function validateDiscount(
@@ -92,20 +93,19 @@ export async function validateDiscount(
   subtotal: number,
   sessionId?: string
 ): Promise<{ valid: boolean; discount: number; message?: string }> {
+  apiClient.setTenant(tenantSlug);
+
   const headers: Record<string, string> = {};
   if (sessionId) {
     headers['x-session-id'] = sessionId;
   }
 
-  const response = await apiClient.post<
-    ApiResponse<{ valid: boolean; discount: number; message?: string }>
-  >(
+  const response = await apiClient.post<{ valid: boolean; discount: number; message?: string }>(
     '/checkout/discount/validate',
     { code, subtotal },
-    tenantSlug,
     { headers }
   );
-  return response.data.data;
+  return response.data!;
 }
 
 export async function initiateCheckout(
@@ -114,6 +114,8 @@ export async function initiateCheckout(
   sessionId?: string,
   idempotencyKey?: string
 ): Promise<CheckoutSession> {
+  apiClient.setTenant(tenantSlug);
+
   const headers: Record<string, string> = {};
   if (sessionId) {
     headers['x-session-id'] = sessionId;
@@ -122,13 +124,12 @@ export async function initiateCheckout(
     headers['idempotency-key'] = idempotencyKey;
   }
 
-  const response = await apiClient.post<ApiResponse<CheckoutSession>>(
+  const response = await apiClient.post<CheckoutSession>(
     '/checkout',
     data,
-    tenantSlug,
     { headers }
   );
-  return response.data.data;
+  return response.data!;
 }
 
 export async function confirmOrder(
@@ -137,20 +138,19 @@ export async function confirmOrder(
   paymentIntentId: string,
   sessionId?: string
 ): Promise<{ orderId: string; orderNumber: string; status: string; total: number }> {
+  apiClient.setTenant(tenantSlug);
+
   const headers: Record<string, string> = {};
   if (sessionId) {
     headers['x-session-id'] = sessionId;
   }
 
-  const response = await apiClient.post<
-    ApiResponse<{ orderId: string; orderNumber: string; status: string; total: number }>
-  >(
+  const response = await apiClient.post<{ orderId: string; orderNumber: string; status: string; total: number }>(
     `/checkout/${orderId}/confirm`,
     { paymentIntentId },
-    tenantSlug,
     { headers }
   );
-  return response.data.data;
+  return response.data!;
 }
 
 export async function cancelCheckout(
@@ -158,6 +158,8 @@ export async function cancelCheckout(
   orderId: string,
   sessionId?: string
 ): Promise<void> {
+  apiClient.setTenant(tenantSlug);
+
   const headers: Record<string, string> = {};
   if (sessionId) {
     headers['x-session-id'] = sessionId;
@@ -166,7 +168,6 @@ export async function cancelCheckout(
   await apiClient.post(
     `/checkout/${orderId}/cancel`,
     {},
-    tenantSlug,
     { headers }
   );
 }
@@ -176,18 +177,19 @@ export async function getOrder(
   orderId: string,
   sessionId?: string
 ): Promise<OrderSummary | null> {
+  apiClient.setTenant(tenantSlug);
+
   const headers: Record<string, string> = {};
   if (sessionId) {
     headers['x-session-id'] = sessionId;
   }
 
   try {
-    const response = await apiClient.get<ApiResponse<OrderSummary>>(
+    const response = await apiClient.get<OrderSummary>(
       `/checkout/orders/${orderId}`,
-      tenantSlug,
       { headers }
     );
-    return response.data.data;
+    return response.data!;
   } catch (error) {
     return null;
   }

@@ -64,7 +64,7 @@ export class Order extends BaseModel {
   static get relationMappings(): RelationMappings {
     const { Tenant } = require('./Tenant.model');
     const { User } = require('./User.model');
-    const { OrderItem } = require('./OrderItem.model');
+    // OrderItem is defined in this same file
 
     return {
       tenant: {

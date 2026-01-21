@@ -106,3 +106,15 @@ export function superAdminMiddleware() {
     roles: [UserRole.SUPER_ADMIN],
   });
 }
+
+// Alias exports for backward compatibility
+export function authenticate(role?: string | UserRole) {
+  if (role === 'admin') {
+    return adminMiddleware();
+  }
+  if (role === 'super_admin') {
+    return superAdminMiddleware();
+  }
+  return authMiddleware();
+}
+export const optionalAuth = authMiddleware({ optional: true });

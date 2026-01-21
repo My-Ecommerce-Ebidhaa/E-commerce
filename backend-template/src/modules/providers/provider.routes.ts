@@ -15,10 +15,12 @@ import {
 } from './dto/provider.dto';
 
 const router = Router();
-const controller = container.resolve(ProviderController);
+
+// Lazy resolve controller
+const getController = () => container.resolve(ProviderController);
 
 // Get supported providers (public info)
-router.get('/supported', controller.getSupportedProviders);
+router.get('/supported', (req, res, next) => getController().getSupportedProviders(req, res, next));
 
 // All other routes require tenant and authentication
 router.use(tenantMiddleware);
@@ -29,33 +31,33 @@ router.use(authMiddleware());
 router.get(
   '/payment',
   permissionMiddleware('settings:read'),
-  controller.getPaymentProviders
+  (req, res, next) => getController().getPaymentProviders(req, res, next)
 );
 
 router.get(
   '/payment/:id',
   permissionMiddleware('settings:read'),
-  controller.getPaymentProvider
+  (req, res, next) => getController().getPaymentProvider(req, res, next)
 );
 
 router.post(
   '/payment',
   permissionMiddleware('settings:update'),
   validateMiddleware({ body: configurePaymentProviderSchema }),
-  controller.configurePaymentProvider
+  (req, res, next) => getController().configurePaymentProvider(req, res, next)
 );
 
 router.patch(
   '/payment/:id',
   permissionMiddleware('settings:update'),
   validateMiddleware({ body: updatePaymentProviderSchema }),
-  controller.updatePaymentProvider
+  (req, res, next) => getController().updatePaymentProvider(req, res, next)
 );
 
 router.delete(
   '/payment/:id',
   permissionMiddleware('settings:update'),
-  controller.deletePaymentProvider
+  (req, res, next) => getController().deletePaymentProvider(req, res, next)
 );
 
 // ==================== EMAIL PROVIDERS ====================
@@ -63,33 +65,33 @@ router.delete(
 router.get(
   '/email',
   permissionMiddleware('settings:read'),
-  controller.getEmailProviders
+  (req, res, next) => getController().getEmailProviders(req, res, next)
 );
 
 router.get(
   '/email/:id',
   permissionMiddleware('settings:read'),
-  controller.getEmailProvider
+  (req, res, next) => getController().getEmailProvider(req, res, next)
 );
 
 router.post(
   '/email',
   permissionMiddleware('settings:update'),
   validateMiddleware({ body: configureEmailProviderSchema }),
-  controller.configureEmailProvider
+  (req, res, next) => getController().configureEmailProvider(req, res, next)
 );
 
 router.patch(
   '/email/:id',
   permissionMiddleware('settings:update'),
   validateMiddleware({ body: updateEmailProviderSchema }),
-  controller.updateEmailProvider
+  (req, res, next) => getController().updateEmailProvider(req, res, next)
 );
 
 router.delete(
   '/email/:id',
   permissionMiddleware('settings:update'),
-  controller.deleteEmailProvider
+  (req, res, next) => getController().deleteEmailProvider(req, res, next)
 );
 
 // ==================== SMS PROVIDERS ====================
@@ -97,33 +99,33 @@ router.delete(
 router.get(
   '/sms',
   permissionMiddleware('settings:read'),
-  controller.getSmsProviders
+  (req, res, next) => getController().getSmsProviders(req, res, next)
 );
 
 router.get(
   '/sms/:id',
   permissionMiddleware('settings:read'),
-  controller.getSmsProvider
+  (req, res, next) => getController().getSmsProvider(req, res, next)
 );
 
 router.post(
   '/sms',
   permissionMiddleware('settings:update'),
   validateMiddleware({ body: configureSmsProviderSchema }),
-  controller.configureSmsProvider
+  (req, res, next) => getController().configureSmsProvider(req, res, next)
 );
 
 router.patch(
   '/sms/:id',
   permissionMiddleware('settings:update'),
   validateMiddleware({ body: updateSmsProviderSchema }),
-  controller.updateSmsProvider
+  (req, res, next) => getController().updateSmsProvider(req, res, next)
 );
 
 router.delete(
   '/sms/:id',
   permissionMiddleware('settings:update'),
-  controller.deleteSmsProvider
+  (req, res, next) => getController().deleteSmsProvider(req, res, next)
 );
 
 export default router;

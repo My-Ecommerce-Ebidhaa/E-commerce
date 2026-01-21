@@ -198,7 +198,7 @@ export class ProviderFactory {
         return new SmtpAdapter({
           host: providerConfig.host,
           port: parseInt(providerConfig.port),
-          secure: providerConfig.secure === 'true' || providerConfig.secure === true,
+          secure: String(providerConfig.secure) === 'true' || providerConfig.secure === true,
           username: providerConfig.username,
           password: providerConfig.password,
           from: settings.fromEmail
@@ -220,7 +220,7 @@ export class ProviderFactory {
     settings: Record<string, any> = {}
   ): ISmsProvider {
     const credentials = this.decryptCredentials(encryptedCredentials);
-    const providerConfig: SmsProviderConfig = {
+    const providerConfig = {
       ...credentials,
       ...settings,
     };

@@ -21,6 +21,7 @@ import {
   EmailProviderRepository,
   SmsProviderRepository,
 } from '@/repositories/provider.repo';
+import { PlatformSettingsRepository } from '@/repositories/platformSettings.repo';
 
 // Services
 import { RedisService } from '@/shared/services/redis.service';
@@ -34,6 +35,7 @@ import { CategoryService } from '@/modules/category/category.service';
 import { RoleService } from '@/modules/roles/role.service';
 import { StaffService } from '@/modules/staff/staff.service';
 import { ProviderService } from '@/modules/providers/provider.service';
+import { PlatformSettingsService } from '@/modules/platform/platform-settings.service';
 
 // Controllers
 import { AuthController } from '@/modules/auth/auth.controller';
@@ -46,8 +48,9 @@ import { StripeWebhookHandler } from '@/modules/payment/webhooks/stripe.webhook'
 import { RoleController } from '@/modules/roles/role.controller';
 import { StaffController } from '@/modules/staff/staff.controller';
 import { ProviderController } from '@/modules/providers/provider.controller';
+import { PlatformSettingsController } from '@/modules/platform/platform-settings.controller';
 
-export function registerDependencies(): void {
+function registerDependenciesInternal(): void {
   // Register repositories
   container.registerSingleton('TenantRepository', TenantRepository);
   container.registerSingleton('UserRepository', UserRepository);
@@ -66,6 +69,7 @@ export function registerDependencies(): void {
   container.registerSingleton('PaymentProviderRepository', PaymentProviderRepository);
   container.registerSingleton('EmailProviderRepository', EmailProviderRepository);
   container.registerSingleton('SmsProviderRepository', SmsProviderRepository);
+  container.registerSingleton('PlatformSettingsRepository', PlatformSettingsRepository);
 
   // Register shared services
   container.registerSingleton('RedisService', RedisService);
@@ -81,6 +85,7 @@ export function registerDependencies(): void {
   container.registerSingleton('RoleService', RoleService);
   container.registerSingleton('StaffService', StaffService);
   container.registerSingleton('ProviderService', ProviderService);
+  container.registerSingleton('PlatformSettingsService', PlatformSettingsService);
 
   // Register controllers
   container.registerSingleton(AuthController, AuthController);
@@ -93,4 +98,13 @@ export function registerDependencies(): void {
   container.registerSingleton(RoleController, RoleController);
   container.registerSingleton(StaffController, StaffController);
   container.registerSingleton(ProviderController, ProviderController);
+  container.registerSingleton(PlatformSettingsController, PlatformSettingsController);
+}
+
+// Register dependencies immediately when this module is imported
+registerDependenciesInternal();
+
+// Export for backward compatibility (already registered, this is a no-op)
+export function registerDependencies(): void {
+  // Dependencies already registered on module load
 }

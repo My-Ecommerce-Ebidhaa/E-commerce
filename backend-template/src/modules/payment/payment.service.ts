@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 import { config } from '@/config';
 import { TenantRepository } from '@/repositories/tenant.repo';
 import { OrderRepository } from '@/repositories/order.repo';
-import { AppError } from '@/shared/errors/app-error';
+import { AppError } from '@/shared/errors/app.error';
 import { logger } from '@/shared/logger';
 
 interface PaymentIntentResult {

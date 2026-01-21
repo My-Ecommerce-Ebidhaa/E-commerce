@@ -31,10 +31,12 @@ const config: { [key: string]: Knex.Config } = {
     },
     migrations: {
       tableName: 'knex_migrations',
-      directory: './dist/database/migrations',
+      directory: './src/database/migrations',
+      extension: 'ts',
     },
     seeds: {
-      directory: './dist/database/seeds',
+      directory: './src/database/seeds',
+      extension: 'ts',
     },
   },
 
@@ -47,10 +49,12 @@ const config: { [key: string]: Knex.Config } = {
     },
     migrations: {
       tableName: 'knex_migrations',
-      directory: './dist/database/migrations',
+      directory: './src/database/migrations',
+      extension: 'ts',
     },
     seeds: {
-      directory: './dist/database/seeds',
+      directory: './src/database/seeds',
+      extension: 'ts',
     },
   },
 };

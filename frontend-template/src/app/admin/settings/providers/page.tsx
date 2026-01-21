@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   Plus,
@@ -68,7 +68,7 @@ const providerIcons: Record<ProviderType, React.ReactNode> = {
   sms: <MessageSquare className="h-5 w-5" />,
 };
 
-export default function ProvidersPage() {
+function ProvidersContent() {
   const searchParams = useSearchParams();
   const initialType = (searchParams.get('type') as ProviderType) || 'payment';
 
@@ -377,5 +377,26 @@ export default function ProvidersPage() {
         </div>
       )}
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="space-y-6">
+      <div>
+        <div className="h-8 w-64 bg-gray-200 rounded animate-pulse"></div>
+        <div className="h-4 w-48 bg-gray-200 rounded animate-pulse mt-2"></div>
+      </div>
+      <div className="h-12 bg-gray-200 rounded animate-pulse"></div>
+      <div className="h-64 bg-gray-200 rounded animate-pulse"></div>
+    </div>
+  );
+}
+
+export default function ProvidersPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <ProvidersContent />
+    </Suspense>
   );
 }

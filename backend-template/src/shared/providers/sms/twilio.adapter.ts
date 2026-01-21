@@ -89,7 +89,7 @@ export class TwilioAdapter extends BaseProvider implements ISmsProvider {
       body,
     });
 
-    const result = await response.json().catch(() => ({}));
+    const result = await response.json().catch(() => ({})) as any;
 
     if (!response.ok) {
       const error: any = new Error(result.message || 'Twilio API error');
@@ -200,7 +200,7 @@ export class TwilioAdapter extends BaseProvider implements ISmsProvider {
         pinId: response.sid,
         to: response.to,
         status: response.status === 'pending' ? 'sent' : 'failed',
-        expiresAt: new Date(response.date_created).getTime() + 10 * 60 * 1000, // 10 minutes default
+        expiresAt: new Date(new Date(response.date_created).getTime() + 10 * 60 * 1000), // 10 minutes default
       };
     }, 'sendOtp');
   }

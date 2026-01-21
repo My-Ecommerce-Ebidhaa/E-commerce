@@ -3,8 +3,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -57,13 +60,50 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      // In production, this would call the auth API
-      // For demo, simulate registration
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Call backend registration API
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
 
-      // Store auth token
-      localStorage.setItem('auth_token', 'demo_token');
-      router.push('/account');
+      const data = await response.json();
+
+      if (!response.ok || !data.status) {
+        if (data.errors) {
+          setErrors(
+            Object.entries(data.errors).reduce((acc, [key, value]) => {
+              acc[key] = Array.isArray(value) ? value[0] : String(value);
+              return acc;
+            }, {} as Record<string, string>)
+          );
+        } else {
+          setErrors({ form: data.message || 'Registration failed. Please try again.' });
+        }
+        return;
+      }
+
+      // Auto sign in after successful registration
+      const signInResult = await signIn('credentials', {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+      });
+
+      if (signInResult?.ok) {
+        router.push('/account');
+        router.refresh();
+      } else {
+        // Registration succeeded but auto-login failed, redirect to login
+        router.push('/auth/login?registered=true');
+      }
     } catch (err) {
       setErrors({ form: 'Registration failed. Please try again.' });
     } finally {
@@ -100,6 +140,7 @@ export default function RegisterPage() {
                 value={formData.firstName}
                 onChange={handleChange('firstName')}
                 className={errors.firstName ? 'border-red-500' : ''}
+                disabled={isLoading}
               />
               {errors.firstName && (
                 <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>
@@ -115,6 +156,7 @@ export default function RegisterPage() {
                 value={formData.lastName}
                 onChange={handleChange('lastName')}
                 className={errors.lastName ? 'border-red-500' : ''}
+                disabled={isLoading}
               />
               {errors.lastName && (
                 <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
@@ -133,6 +175,7 @@ export default function RegisterPage() {
               onChange={handleChange('email')}
               placeholder="you@example.com"
               className={errors.email ? 'border-red-500' : ''}
+              disabled={isLoading}
             />
             {errors.email && (
               <p className="mt-1 text-sm text-red-600">{errors.email}</p>
@@ -149,6 +192,7 @@ export default function RegisterPage() {
               value={formData.password}
               onChange={handleChange('password')}
               className={errors.password ? 'border-red-500' : ''}
+              disabled={isLoading}
             />
             {errors.password && (
               <p className="mt-1 text-sm text-red-600">{errors.password}</p>
@@ -165,6 +209,7 @@ export default function RegisterPage() {
               value={formData.confirmPassword}
               onChange={handleChange('confirmPassword')}
               className={errors.confirmPassword ? 'border-red-500' : ''}
+              disabled={isLoading}
             />
             {errors.confirmPassword && (
               <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>

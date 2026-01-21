@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { config } from '@/config';
 import { logger } from '@/shared/logger';
 import { initializeDatabase, closeDatabase } from '@/database';

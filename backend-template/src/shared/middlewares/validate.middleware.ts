@@ -60,3 +60,6 @@ function formatZodErrors(error: ZodError): Record<string, string[]> {
 
   return errors;
 }
+
+// Alias export for backward compatibility
+export const validate = validateMiddleware;

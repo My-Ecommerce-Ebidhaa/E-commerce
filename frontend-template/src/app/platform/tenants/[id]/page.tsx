@@ -26,7 +26,11 @@ import {
   Settings,
   Activity,
   Shield,
+  Edit,
+  Loader2,
+  MessageSquare,
 } from 'lucide-react';
+import { useTenant, usePlatformSettings } from '@/lib/hooks/use-platform';
 
 interface TenantDetail {
   id: string;
@@ -122,10 +126,34 @@ export default function TenantDetailPage() {
   const router = useRouter();
   const tenantId = params.id as string;
 
+  const { data: tenantData, isLoading: tenantLoading } = useTenant(tenantId);
+  const { data: platformSettings, isLoading: settingsLoading } = usePlatformSettings();
+
   const [tenant] = useState<TenantDetail>(mockTenant);
   const [showActionMenu, setShowActionMenu] = useState(false);
   const [showSuspendModal, setShowSuspendModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'subscription' | 'activity' | 'settings'>('overview');
+
+  // Show loading state
+  if (tenantLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
+    );
+  }
+
+  // Get display name from real data if available
+  const displayName = tenantData?.name || tenant.name;
+  const displaySlug = tenantData?.slug || tenant.subdomain;
+  const displayStatus = tenantData?.status || tenant.status;
+  const displayDomain = tenantData?.domain || tenant.customDomain;
+  const displayTemplate = tenantData?.templateType || tenant.template;
+
+  // Provider status
+  const hasDefaultPayment = !!platformSettings?.defaultPaymentProvider;
+  const hasDefaultEmail = !!platformSettings?.defaultEmailProvider;
+  const hasDefaultSms = !!platformSettings?.defaultSmsProvider;
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -152,23 +180,30 @@ export default function TenantDetailPage() {
             </div>
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold text-gray-900">{tenant.name}</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{displayName}</h1>
                 <span
                   className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
-                    statusConfig[tenant.status].bg
-                  } ${statusConfig[tenant.status].color}`}
+                    statusConfig[displayStatus]?.bg || 'bg-gray-100'
+                  } ${statusConfig[displayStatus]?.color || 'text-gray-700'}`}
                 >
-                  {statusConfig[tenant.status].icon}
-                  {tenant.status.charAt(0).toUpperCase() + tenant.status.slice(1)}
+                  {statusConfig[displayStatus]?.icon || <Clock className="h-4 w-4" />}
+                  {displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1)}
                 </span>
               </div>
-              <p className="text-gray-500">{tenant.subdomain}.ebidhaa.com</p>
+              <p className="text-gray-500">{displaySlug}.ebidhaa.com</p>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <Link
+            href={`/platform/tenants/${tenantId}/edit`}
+            className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            <Edit className="h-4 w-4" />
+            Edit
+          </Link>
           <a
-            href={`https://${tenant.subdomain}.ebidhaa.com`}
+            href={`https://${displaySlug}.ebidhaa.com`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
@@ -396,6 +431,62 @@ export default function TenantDetailPage() {
                 </div>
               </div>
             </div>
+
+            {/* Provider Configuration */}
+            {tenantData && (
+              <div className="rounded-lg border bg-white p-6">
+                <h2 className="mb-4 font-semibold text-gray-900">Provider Configuration</h2>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="h-4 w-4 text-gray-400" />
+                      <span className="text-sm text-gray-600">Payment</span>
+                    </div>
+                    {tenantData.useDefaultPaymentProvider ? (
+                      <span className={`text-xs font-medium ${hasDefaultPayment ? 'text-green-600' : 'text-amber-600'}`}>
+                        {hasDefaultPayment ? 'Platform Default' : 'No Default Set'}
+                      </span>
+                    ) : (
+                      <span className="text-xs font-medium text-blue-600">Custom</span>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-gray-400" />
+                      <span className="text-sm text-gray-600">Email</span>
+                    </div>
+                    {tenantData.useDefaultEmailProvider ? (
+                      <span className={`text-xs font-medium ${hasDefaultEmail ? 'text-green-600' : 'text-amber-600'}`}>
+                        {hasDefaultEmail ? 'Platform Default' : 'No Default Set'}
+                      </span>
+                    ) : (
+                      <span className="text-xs font-medium text-blue-600">Custom</span>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4 text-gray-400" />
+                      <span className="text-sm text-gray-600">SMS</span>
+                    </div>
+                    {tenantData.useDefaultSmsProvider ? (
+                      <span className={`text-xs font-medium ${hasDefaultSms ? 'text-green-600' : 'text-amber-600'}`}>
+                        {hasDefaultSms ? 'Platform Default' : 'No Default Set'}
+                      </span>
+                    ) : (
+                      <span className="text-xs font-medium text-blue-600">Custom</span>
+                    )}
+                  </div>
+                </div>
+                <div className="mt-4 pt-4 border-t">
+                  <Link
+                    href={`/platform/tenants/${tenantId}/edit`}
+                    className="text-sm text-blue-600 hover:text-blue-700"
+                  >
+                    Edit provider settings
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

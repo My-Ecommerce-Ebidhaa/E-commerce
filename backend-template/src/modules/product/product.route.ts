@@ -12,26 +12,28 @@ import {
 import { z } from 'zod';
 
 const router = Router();
-const controller = container.resolve(ProductController);
+
+// Lazy resolve controller
+const getController = () => container.resolve(ProductController);
 
 // Public routes
 router.get(
   '/',
   tenantMiddleware,
   validateMiddleware({ query: queryProductSchema }),
-  controller.findAll
+  (req, res, next) => getController().findAll(req, res, next)
 );
 
 router.get(
   '/slug/:slug',
   tenantMiddleware,
-  controller.findBySlug
+  (req, res, next) => getController().findBySlug(req, res, next)
 );
 
 router.get(
   '/:id',
   tenantMiddleware,
-  controller.findById
+  (req, res, next) => getController().findById(req, res, next)
 );
 
 // Admin routes
@@ -40,7 +42,7 @@ router.post(
   tenantMiddleware,
   adminMiddleware(),
   validateMiddleware({ body: createProductSchema }),
-  controller.create
+  (req, res, next) => getController().create(req, res, next)
 );
 
 router.patch(
@@ -48,14 +50,14 @@ router.patch(
   tenantMiddleware,
   adminMiddleware(),
   validateMiddleware({ body: updateProductSchema }),
-  controller.update
+  (req, res, next) => getController().update(req, res, next)
 );
 
 router.delete(
   '/:id',
   tenantMiddleware,
   adminMiddleware(),
-  controller.delete
+  (req, res, next) => getController().delete(req, res, next)
 );
 
 router.patch(
@@ -65,7 +67,7 @@ router.patch(
   validateMiddleware({
     body: z.object({ quantity: z.number().int().min(0) }),
   }),
-  controller.updateInventory
+  (req, res, next) => getController().updateInventory(req, res, next)
 );
 
 export default router;

@@ -101,3 +101,9 @@ export function completeIdempotency() {
     next();
   };
 }
+
+// Alias export - default checkout idempotency middleware
+export const idempotency = idempotencyMiddleware({
+  requestType: 'checkout',
+  required: false,
+});

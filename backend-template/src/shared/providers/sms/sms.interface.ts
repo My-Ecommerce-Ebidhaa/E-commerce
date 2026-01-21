@@ -128,7 +128,7 @@ export enum SmsFeature {
 }
 
 export interface SmsProviderConfig {
-  apiKey: string;
+  apiKey?: string;
   apiSecret?: string;
   senderId?: string;
   accountId?: string;

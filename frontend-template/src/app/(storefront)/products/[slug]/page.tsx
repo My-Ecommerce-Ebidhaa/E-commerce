@@ -51,7 +51,7 @@ async function ProductDetail({ slug }: { slug: string }) {
     .map((m) => ({ url: m.url, alt: m.altText || product.name })) || [];
 
   const hasVariants = product.variants && product.variants.length > 0;
-  const inStock = product.quantity > 0 || product.variants?.some((v) => v.quantity > 0);
+  const inStock = product.quantity > 0 || product.variants?.some((v) => v.quantity > 0) || false;
 
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">

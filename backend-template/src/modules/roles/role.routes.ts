@@ -14,83 +14,85 @@ import {
 } from './dto/role.dto';
 
 const router = Router();
-const controller = container.resolve(RoleController);
+
+// Lazy resolve controller
+const getController = () => container.resolve(RoleController);
 
 // All routes require tenant and authentication
 router.use(tenantMiddleware);
 router.use(authMiddleware());
 
 // Get all available permissions (for role creation UI)
-router.get('/permissions', controller.getAllPermissions);
+router.get('/permissions', (req, res, next) => getController().getAllPermissions(req, res, next));
 
 // Get current user's permissions
-router.get('/me/permissions', controller.getMyPermissions);
+router.get('/me/permissions', (req, res, next) => getController().getMyPermissions(req, res, next));
 
 // Role CRUD - requires role management permission
 router.get(
   '/',
   permissionMiddleware('roles:read'),
   validateMiddleware({ query: queryRoleSchema }),
-  controller.findAll
+  (req, res, next) => getController().findAll(req, res, next)
 );
 
 router.get(
   '/:id',
   permissionMiddleware('roles:read'),
-  controller.findById
+  (req, res, next) => getController().findById(req, res, next)
 );
 
 router.get(
   '/:id/users',
   permissionMiddleware('roles:read'),
-  controller.getRoleUsers
+  (req, res, next) => getController().getRoleUsers(req, res, next)
 );
 
 router.post(
   '/',
   permissionMiddleware('roles:create'),
   validateMiddleware({ body: createRoleSchema }),
-  controller.create
+  (req, res, next) => getController().create(req, res, next)
 );
 
 router.patch(
   '/:id',
   permissionMiddleware('roles:update'),
   validateMiddleware({ body: updateRoleSchema }),
-  controller.update
+  (req, res, next) => getController().update(req, res, next)
 );
 
 router.delete(
   '/:id',
   permissionMiddleware('roles:delete'),
-  controller.delete
+  (req, res, next) => getController().delete(req, res, next)
 );
 
 // User role management
 router.get(
   '/users/:userId/roles',
   permissionMiddleware('staff:read'),
-  controller.getUserRoles
+  (req, res, next) => getController().getUserRoles(req, res, next)
 );
 
 router.get(
   '/users/:userId/permissions',
   permissionMiddleware('staff:read'),
-  controller.getUserPermissions
+  (req, res, next) => getController().getUserPermissions(req, res, next)
 );
 
 router.post(
   '/assign',
   permissionMiddleware('roles:assign'),
   validateMiddleware({ body: assignRoleSchema }),
-  controller.assignRole
+  (req, res, next) => getController().assignRole(req, res, next)
 );
 
 router.post(
   '/remove',
   permissionMiddleware('roles:assign'),
   validateMiddleware({ body: removeRoleSchema }),
-  controller.removeRole
+  (req, res, next) => getController().removeRole(req, res, next)
 );
 
 export default router;

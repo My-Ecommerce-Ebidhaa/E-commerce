@@ -60,7 +60,7 @@ export class TermiiAdapter extends BaseProvider implements ISmsProvider {
       body: data ? JSON.stringify({ ...data, api_key: this.apiKey }) : undefined,
     });
 
-    const result = await response.json();
+    const result = await response.json() as any;
 
     if (!response.ok || result.code?.startsWith('error')) {
       const error: any = new Error(result.message || 'Termii API error');

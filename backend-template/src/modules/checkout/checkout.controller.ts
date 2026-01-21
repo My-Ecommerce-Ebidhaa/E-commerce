@@ -2,7 +2,7 @@ import { injectable, inject } from 'tsyringe';
 import { Request, Response } from 'express';
 import { CheckoutService } from './checkout.service';
 import { PaymentService } from '@/modules/payment/payment.service';
-import { ApiResponse } from '@/shared/utils/response';
+import { ApiResponse } from '@/shared/utils/response.util';
 import { InitiateCheckoutDto, CalculateShippingDto } from './dto/checkout.dto';
 
 @injectable()

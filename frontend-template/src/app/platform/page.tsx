@@ -2,117 +2,127 @@
 
 import {
   Building2,
-  Users,
   DollarSign,
-  TrendingUp,
   ArrowUpRight,
   AlertCircle,
   CheckCircle,
   Clock,
 } from 'lucide-react';
 import Link from 'next/link';
-
-interface StatCard {
-  label: string;
-  value: string;
-  change: string;
-  icon: React.ReactNode;
-  href: string;
-}
-
-const stats: StatCard[] = [
-  {
-    label: 'Total Tenants',
-    value: '156',
-    change: '+12 this month',
-    icon: <Building2 className="h-6 w-6" />,
-    href: '/platform/tenants',
-  },
-  {
-    label: 'Active Subscriptions',
-    value: '142',
-    change: '91% active rate',
-    icon: <CheckCircle className="h-6 w-6" />,
-    href: '/platform/subscriptions',
-  },
-  {
-    label: 'Monthly Revenue',
-    value: '$12,450',
-    change: '+18% from last month',
-    icon: <DollarSign className="h-6 w-6" />,
-    href: '/platform/subscriptions',
-  },
-  {
-    label: 'Trial Accounts',
-    value: '23',
-    change: '14 expiring soon',
-    icon: <Clock className="h-6 w-6" />,
-    href: '/platform/tenants?status=trial',
-  },
-];
-
-const recentTenants = [
-  {
-    id: '1',
-    name: 'Fashion Hub',
-    owner: 'john@fashionhub.com',
-    template: 'fashion',
-    status: 'active',
-    plan: 'Professional',
-    createdAt: '2 hours ago',
-  },
-  {
-    id: '2',
-    name: 'Auto Masters',
-    owner: 'mike@automasters.com',
-    template: 'auto',
-    status: 'trial',
-    plan: 'Free Trial',
-    createdAt: '1 day ago',
-  },
-  {
-    id: '3',
-    name: 'Tech Store',
-    owner: 'sarah@techstore.com',
-    template: 'electronics',
-    status: 'active',
-    plan: 'Starter',
-    createdAt: '3 days ago',
-  },
-  {
-    id: '4',
-    name: 'Gadget World',
-    owner: 'alice@gadgetworld.com',
-    template: 'electronics',
-    status: 'past_due',
-    plan: 'Professional',
-    createdAt: '1 week ago',
-  },
-];
+import { usePlatformStats, useTenants, useSubscriptions } from '@/lib/hooks/use-platform';
 
 const statusColors: Record<string, string> = {
   active: 'bg-green-100 text-green-800',
   trial: 'bg-blue-100 text-blue-800',
+  trialing: 'bg-blue-100 text-blue-800',
   past_due: 'bg-red-100 text-red-800',
+  suspended: 'bg-red-100 text-red-800',
+  pending: 'bg-yellow-100 text-yellow-800',
   cancelled: 'bg-gray-100 text-gray-800',
 };
 
-const alerts = [
-  {
-    type: 'warning',
-    message: '14 trial accounts expiring within 7 days',
-    action: 'View accounts',
-    href: '/platform/tenants?status=trial&expiring=true',
-  },
-  {
-    type: 'error',
-    message: '3 subscriptions have past due payments',
-    action: 'Review payments',
-    href: '/platform/subscriptions?status=past_due',
-  },
-];
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(amount);
+}
+
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffHours < 1) return 'Just now';
+  if (diffHours < 24) return `${diffHours} hours ago`;
+  if (diffDays === 1) return '1 day ago';
+  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+  return date.toLocaleDateString();
+}
+
+function LoadingSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse">
+      <div>
+        <div className="h-8 w-48 bg-gray-200 rounded"></div>
+        <div className="h-4 w-64 bg-gray-200 rounded mt-2"></div>
+      </div>
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="rounded-lg border bg-white p-6">
+            <div className="h-12 w-12 bg-gray-200 rounded-lg"></div>
+            <div className="mt-4 space-y-2">
+              <div className="h-4 w-24 bg-gray-200 rounded"></div>
+              <div className="h-8 w-20 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function PlatformDashboard() {
+  const { data: stats, isLoading: statsLoading, error: statsError } = usePlatformStats();
+  const { data: tenantsData, isLoading: tenantsLoading } = useTenants({ limit: 4 });
+  const { data: subscriptionsData } = useSubscriptions({ status: 'past_due', limit: 10 });
+
+  if (statsLoading) {
+    return <LoadingSkeleton />;
+  }
+
+  // Calculate stat cards from real data
+  const statCards = [
+    {
+      label: 'Total Tenants',
+      value: stats?.totalTenants?.toString() || '0',
+      change: `+${stats?.newTenantsThisMonth || 0} this month`,
+      icon: <Building2 className="h-6 w-6" />,
+      href: '/platform/tenants',
+    },
+    {
+      label: 'Active Subscriptions',
+      value: stats?.activeSubscriptions?.toString() || '0',
+      change: stats?.totalTenants
+        ? `${Math.round((stats.activeTenants / stats.totalTenants) * 100)}% active rate`
+        : '0% active rate',
+      icon: <CheckCircle className="h-6 w-6" />,
+      href: '/platform/subscriptions',
+    },
+    {
+      label: 'Monthly Revenue',
+      value: formatCurrency(stats?.monthlyRevenue || 0),
+      change: `ARPU: ${formatCurrency(stats?.averageRevenuePerUser || 0)}`,
+      icon: <DollarSign className="h-6 w-6" />,
+      href: '/platform/subscriptions',
+    },
+    {
+      label: 'Churn Rate',
+      value: `${stats?.churnRate?.toFixed(1) || 0}%`,
+      change: 'Monthly churn',
+      icon: <Clock className="h-6 w-6" />,
+      href: '/platform/subscriptions',
+    },
+  ];
+
+  // Build alerts based on real data
+  const alerts = [];
+  const pastDueCount = subscriptionsData?.subscriptions?.length || 0;
+
+  if (pastDueCount > 0) {
+    alerts.push({
+      type: 'error',
+      message: `${pastDueCount} subscription${pastDueCount > 1 ? 's have' : ' has'} past due payments`,
+      action: 'Review payments',
+      href: '/platform/subscriptions?status=past_due',
+    });
+  }
+
+  const tenants = tenantsData?.tenants || [];
+
   return (
     <div className="space-y-6">
       <div>
@@ -163,9 +173,18 @@ export default function PlatformDashboard() {
         </div>
       )}
 
+      {/* Error State */}
+      {statsError && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+          <p className="text-sm text-red-800">
+            Failed to load platform statistics. Please try again later.
+          </p>
+        </div>
+      )}
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
+        {statCards.map((stat) => (
           <Link
             key={stat.label}
             href={stat.href}
@@ -199,74 +218,111 @@ export default function PlatformDashboard() {
             </Link>
           </div>
           <div className="divide-y">
-            {recentTenants.map((tenant) => (
-              <Link
-                key={tenant.id}
-                href={`/platform/tenants/${tenant.id}`}
-                className="flex items-center justify-between p-4 hover:bg-gray-50"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
-                    <Building2 className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{tenant.name}</p>
-                    <p className="text-sm text-gray-500">{tenant.owner}</p>
-                  </div>
+            {tenantsLoading ? (
+              <div className="p-4">
+                <div className="animate-pulse space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-center gap-4">
+                      <div className="h-10 w-10 bg-gray-200 rounded-lg"></div>
+                      <div className="flex-1">
+                        <div className="h-4 w-24 bg-gray-200 rounded"></div>
+                        <div className="h-3 w-32 bg-gray-200 rounded mt-1"></div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="text-right">
-                  <span
-                    className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                      statusColors[tenant.status]
-                    }`}
-                  >
-                    {tenant.status}
-                  </span>
-                  <p className="mt-1 text-xs text-gray-500">{tenant.createdAt}</p>
-                </div>
-              </Link>
-            ))}
+              </div>
+            ) : tenants.length === 0 ? (
+              <div className="p-8 text-center text-gray-500">
+                No tenants found
+              </div>
+            ) : (
+              tenants.map((tenant) => (
+                <Link
+                  key={tenant.id}
+                  href={`/platform/tenants/${tenant.id}`}
+                  className="flex items-center justify-between p-4 hover:bg-gray-50"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+                      <Building2 className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">{tenant.name}</p>
+                      <p className="text-sm text-gray-500">{tenant.slug}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span
+                      className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                        statusColors[tenant.status] || 'bg-gray-100 text-gray-800'
+                      }`}
+                    >
+                      {tenant.status}
+                    </span>
+                    <p className="mt-1 text-xs text-gray-500">
+                      {formatDate(tenant.createdAt)}
+                    </p>
+                  </div>
+                </Link>
+              ))
+            )}
           </div>
         </div>
 
-        {/* Subscription Distribution */}
+        {/* Quick Actions */}
         <div className="rounded-lg border bg-white shadow-sm">
           <div className="border-b p-4">
-            <h2 className="font-semibold text-gray-900">Plan Distribution</h2>
+            <h2 className="font-semibold text-gray-900">Quick Actions</h2>
           </div>
-          <div className="p-6">
-            <div className="space-y-4">
-              {[
-                { plan: 'Free', count: 23, percentage: 15, color: 'bg-gray-500' },
-                { plan: 'Starter', count: 45, percentage: 29, color: 'bg-blue-500' },
-                { plan: 'Professional', count: 67, percentage: 43, color: 'bg-indigo-500' },
-                { plan: 'Enterprise', count: 21, percentage: 13, color: 'bg-purple-500' },
-              ].map((item) => (
-                <div key={item.plan}>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-700">{item.plan}</span>
-                    <span className="text-gray-500">
-                      {item.count} tenants ({item.percentage}%)
-                    </span>
-                  </div>
-                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-100">
-                    <div
-                      className={`h-full ${item.color}`}
-                      style={{ width: `${item.percentage}%` }}
-                    />
-                  </div>
+          <div className="p-6 space-y-4">
+            <Link
+              href="/platform/tenants/new"
+              className="flex items-center justify-between p-4 rounded-lg border hover:bg-gray-50"
+            >
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-blue-100 p-2 text-blue-600">
+                  <Building2 className="h-5 w-5" />
                 </div>
-              ))}
-            </div>
+                <div>
+                  <p className="font-medium text-gray-900">Create New Tenant</p>
+                  <p className="text-sm text-gray-500">Set up a new store</p>
+                </div>
+              </div>
+              <ArrowUpRight className="h-5 w-5 text-gray-400" />
+            </Link>
 
-            <div className="mt-6 flex justify-center">
-              <Link
-                href="/platform/subscriptions"
-                className="text-sm text-blue-600 hover:text-blue-700"
-              >
-                View subscription details
-              </Link>
-            </div>
+            <Link
+              href="/platform/plans"
+              className="flex items-center justify-between p-4 rounded-lg border hover:bg-gray-50"
+            >
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-purple-100 p-2 text-purple-600">
+                  <DollarSign className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">Manage Plans</p>
+                  <p className="text-sm text-gray-500">Configure pricing tiers</p>
+                </div>
+              </div>
+              <ArrowUpRight className="h-5 w-5 text-gray-400" />
+            </Link>
+
+            <Link
+              href="/platform/subscriptions"
+              className="flex items-center justify-between p-4 rounded-lg border hover:bg-gray-50"
+            >
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-green-100 p-2 text-green-600">
+                  <CheckCircle className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">View Subscriptions</p>
+                  <p className="text-sm text-gray-500">Monitor billing status</p>
+                </div>
+              </div>
+              <ArrowUpRight className="h-5 w-5 text-gray-400" />
+            </Link>
           </div>
         </div>
       </div>

@@ -40,17 +40,15 @@ export async function fetchCart(
   tenantSlug: string,
   sessionId?: string
 ): Promise<Cart> {
+  apiClient.setTenant(tenantSlug);
+
   const headers: Record<string, string> = {};
   if (sessionId) {
     headers['x-session-id'] = sessionId;
   }
 
-  const response = await apiClient.get<ApiResponse<Cart>>(
-    '/cart',
-    tenantSlug,
-    { headers }
-  );
-  return response.data.data;
+  const response = await apiClient.get<Cart>('/cart', { headers });
+  return response.data!;
 }
 
 export async function addToCart(
@@ -58,18 +56,15 @@ export async function addToCart(
   data: AddToCartRequest,
   sessionId?: string
 ): Promise<Cart> {
+  apiClient.setTenant(tenantSlug);
+
   const headers: Record<string, string> = {};
   if (sessionId) {
     headers['x-session-id'] = sessionId;
   }
 
-  const response = await apiClient.post<ApiResponse<Cart>>(
-    '/cart',
-    data,
-    tenantSlug,
-    { headers }
-  );
-  return response.data.data;
+  const response = await apiClient.post<Cart>('/cart', data, { headers });
+  return response.data!;
 }
 
 export async function updateCartItem(
@@ -78,18 +73,19 @@ export async function updateCartItem(
   data: UpdateCartItemRequest,
   sessionId?: string
 ): Promise<Cart> {
+  apiClient.setTenant(tenantSlug);
+
   const headers: Record<string, string> = {};
   if (sessionId) {
     headers['x-session-id'] = sessionId;
   }
 
-  const response = await apiClient.patch<ApiResponse<Cart>>(
+  const response = await apiClient.patch<Cart>(
     `/cart/items/${itemId}`,
     data,
-    tenantSlug,
     { headers }
   );
-  return response.data.data;
+  return response.data!;
 }
 
 export async function removeFromCart(
@@ -97,31 +93,30 @@ export async function removeFromCart(
   itemId: string,
   sessionId?: string
 ): Promise<Cart> {
+  apiClient.setTenant(tenantSlug);
+
   const headers: Record<string, string> = {};
   if (sessionId) {
     headers['x-session-id'] = sessionId;
   }
 
-  const response = await apiClient.delete<ApiResponse<Cart>>(
+  const response = await apiClient.delete<Cart>(
     `/cart/items/${itemId}`,
-    tenantSlug,
     { headers }
   );
-  return response.data.data;
+  return response.data!;
 }
 
 export async function clearCart(
   tenantSlug: string,
   sessionId?: string
 ): Promise<void> {
+  apiClient.setTenant(tenantSlug);
+
   const headers: Record<string, string> = {};
   if (sessionId) {
     headers['x-session-id'] = sessionId;
   }
 
-  await apiClient.delete<ApiResponse<Cart>>(
-    '/cart',
-    tenantSlug,
-    { headers }
-  );
+  await apiClient.delete<Cart>('/cart', { headers });
 }

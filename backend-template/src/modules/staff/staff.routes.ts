@@ -14,14 +14,16 @@ import {
 import { z } from 'zod';
 
 const router = Router();
-const controller = container.resolve(StaffController);
+
+// Lazy resolve controller
+const getController = () => container.resolve(StaffController);
 
 // Public route - Accept invitation (no auth required)
 router.post(
   '/invitations/accept',
   tenantMiddleware,
   validateMiddleware({ body: acceptInvitationSchema }),
-  controller.acceptInvitation
+  (req, res, next) => getController().acceptInvitation(req, res, next)
 );
 
 // Protected routes - require tenant and authentication
@@ -33,13 +35,13 @@ router.get(
   '/',
   permissionMiddleware('staff:read'),
   validateMiddleware({ query: queryStaffSchema }),
-  controller.findAll
+  (req, res, next) => getController().findAll(req, res, next)
 );
 
 router.get(
   '/:id',
   permissionMiddleware('staff:read'),
-  controller.findById
+  (req, res, next) => getController().findById(req, res, next)
 );
 
 // Staff management
@@ -47,25 +49,25 @@ router.patch(
   '/:id',
   permissionMiddleware('staff:update'),
   validateMiddleware({ body: updateStaffSchema }),
-  controller.update
+  (req, res, next) => getController().update(req, res, next)
 );
 
 router.post(
   '/:id/deactivate',
   permissionMiddleware('staff:update'),
-  controller.deactivate
+  (req, res, next) => getController().deactivate(req, res, next)
 );
 
 router.post(
   '/:id/reactivate',
   permissionMiddleware('staff:update'),
-  controller.reactivate
+  (req, res, next) => getController().reactivate(req, res, next)
 );
 
 router.delete(
   '/:id',
   permissionMiddleware('staff:delete'),
-  controller.remove
+  (req, res, next) => getController().remove(req, res, next)
 );
 
 // Role assignment
@@ -77,33 +79,33 @@ router.patch(
       roleIds: z.array(z.string().uuid()).min(1),
     }),
   }),
-  controller.updateRoles
+  (req, res, next) => getController().updateRoles(req, res, next)
 );
 
 // Invitations
 router.get(
   '/invitations/pending',
   permissionMiddleware('staff:read'),
-  controller.getPendingInvitations
+  (req, res, next) => getController().getPendingInvitations(req, res, next)
 );
 
 router.post(
   '/invitations',
   permissionMiddleware('staff:create'),
   validateMiddleware({ body: inviteStaffSchema }),
-  controller.invite
+  (req, res, next) => getController().invite(req, res, next)
 );
 
 router.post(
   '/invitations/:id/resend',
   permissionMiddleware('staff:create'),
-  controller.resendInvitation
+  (req, res, next) => getController().resendInvitation(req, res, next)
 );
 
 router.delete(
   '/invitations/:id',
   permissionMiddleware('staff:delete'),
-  controller.cancelInvitation
+  (req, res, next) => getController().cancelInvitation(req, res, next)
 );
 
 export default router;

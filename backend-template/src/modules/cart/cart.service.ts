@@ -3,9 +3,9 @@ import { transaction } from 'objection';
 import { CartRepository } from '@/repositories/cart.repo';
 import { ProductRepository } from '@/repositories/product.repo';
 import { RedisService } from '@/shared/services/redis.service';
-import { AppError } from '@/shared/errors/app-error';
+import { AppError } from '@/shared/errors/app.error';
 import { Cart } from '@/models/Cart.model';
-import { CartItem } from '@/models/CartItem.model';
+import { CartItem } from '@/models/Cart.model';
 import { AddToCartDto, UpdateCartItemDto } from './dto/cart.dto';
 import { v4 as uuidv4 } from 'uuid';
 

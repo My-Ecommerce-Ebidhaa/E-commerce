@@ -1,7 +1,7 @@
 import { injectable, inject } from 'tsyringe';
 import { Request, Response } from 'express';
 import { CategoryService } from './category.service';
-import { ApiResponse } from '@/shared/utils/response';
+import { ApiResponse } from '@/shared/utils/response.util';
 import { CreateCategoryDto, UpdateCategoryDto } from './dto/category.dto';
 
 @injectable()

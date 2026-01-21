@@ -9,3 +9,4 @@ export * from './discount.repo';
 export * from './idempotency.repo';
 export * from './permission.repo';
 export * from './role.repo';
+export * from './platformSettings.repo';

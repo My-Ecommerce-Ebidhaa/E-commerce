@@ -18,7 +18,7 @@ export class Cart extends BaseModel {
   static get relationMappings(): RelationMappings {
     const { Tenant } = require('./Tenant.model');
     const { User } = require('./User.model');
-    const { CartItem } = require('./CartItem.model');
+    // CartItem is defined in this same file
 
     return {
       tenant: {

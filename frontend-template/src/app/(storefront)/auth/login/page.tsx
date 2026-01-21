@@ -1,41 +1,50 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl') || '/';
+  const error = searchParams.get('error');
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [formError, setFormError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setFormError('');
     setIsLoading(true);
 
     try {
-      // In production, this would call the auth API
-      // For demo, simulate login
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+        callbackUrl,
+      });
 
-      if (email && password) {
-        // Store auth token
-        localStorage.setItem('auth_token', 'demo_token');
-        router.push('/account');
-      } else {
-        setError('Please enter email and password');
+      if (result?.error) {
+        setFormError(result.error);
+      } else if (result?.ok) {
+        router.push(callbackUrl);
+        router.refresh();
       }
     } catch (err) {
-      setError('Invalid credentials');
+      setFormError('An unexpected error occurred');
     } finally {
       setIsLoading(false);
     }
   };
+
+  const displayError = formError || (error === 'CredentialsSignin' ? 'Invalid email or password' : error);
 
   return (
     <div className="container mx-auto px-4 py-16">
@@ -43,9 +52,9 @@ export default function LoginPage() {
         <h1 className="text-3xl font-bold text-center mb-8">Sign In</h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
+          {displayError && (
             <div className="rounded-md bg-red-50 p-4 text-sm text-red-600">
-              {error}
+              {displayError}
             </div>
           )}
 
@@ -60,6 +69,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               required
+              disabled={isLoading}
             />
           </div>
 
@@ -74,6 +84,7 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Your password"
               required
+              disabled={isLoading}
             />
           </div>
 
@@ -103,5 +114,30 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="container mx-auto px-4 py-16">
+      <div className="mx-auto max-w-md">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-32 mx-auto mb-8"></div>
+          <div className="space-y-4">
+            <div className="h-10 bg-gray-200 rounded"></div>
+            <div className="h-10 bg-gray-200 rounded"></div>
+            <div className="h-10 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <LoginContent />
+    </Suspense>
   );
 }

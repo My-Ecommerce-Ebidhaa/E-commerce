@@ -1,7 +1,7 @@
 import { injectable, inject } from 'tsyringe';
 import { Request, Response } from 'express';
 import { CartService } from './cart.service';
-import { ApiResponse } from '@/shared/utils/response';
+import { ApiResponse } from '@/shared/utils/response.util';
 import { AddToCartDto, UpdateCartItemDto } from './dto/cart.dto';
 
 @injectable()

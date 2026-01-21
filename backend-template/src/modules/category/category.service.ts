@@ -1,6 +1,6 @@
 import { injectable, inject } from 'tsyringe';
 import { CategoryRepository } from '@/repositories/category.repo';
-import { AppError } from '@/shared/errors/app-error';
+import { AppError } from '@/shared/errors/app.error';
 import { Category } from '@/models/Category.model';
 import { CreateCategoryDto, UpdateCategoryDto } from './dto/category.dto';
 import { v4 as uuidv4 } from 'uuid';

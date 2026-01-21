@@ -16,6 +16,7 @@ import categoryRoutes from '@/modules/category/category.routes';
 import roleRoutes from '@/modules/roles/role.routes';
 import staffRoutes from '@/modules/staff/staff.routes';
 import providerRoutes from '@/modules/providers/provider.routes';
+import platformSettingsRoutes from '@/modules/platform/platform-settings.routes';
 
 export function createApp(): Express {
   const app = express();
@@ -39,6 +40,7 @@ export function createApp(): Express {
   app.use(`${apiPrefix}/roles`, roleRoutes);
   app.use(`${apiPrefix}/staff`, staffRoutes);
   app.use(`${apiPrefix}/providers`, providerRoutes);
+  app.use(`${apiPrefix}/platform/settings`, platformSettingsRoutes);
 
   // Error handlers (must be last)
   initializeErrorHandlers(app);

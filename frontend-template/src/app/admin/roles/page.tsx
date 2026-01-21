@@ -137,7 +137,7 @@ export default function RolesPage() {
     if (allSelected) {
       setSelectedPermissions((prev) => prev.filter((p) => !slugs.includes(p)));
     } else {
-      setSelectedPermissions((prev) => [...new Set([...prev, ...slugs])]);
+      setSelectedPermissions((prev) => Array.from(new Set([...prev, ...slugs])));
     }
   };
 
